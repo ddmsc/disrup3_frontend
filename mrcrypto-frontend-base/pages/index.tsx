@@ -1,18 +1,41 @@
 import Head from 'next/head'
 import { Inter } from 'next/font/google'
 import Navbar from '@/components/Navbar'
+import Error from "@/components/Error";
 import Mint from '@/components/Mint'
-import {ethers} from 'ethers'
-
-const inter = Inter({ subsets: ['latin'] })
+import { useWeb3Store } from '@/store/web3Store'
+import { useEffect, useState } from 'react'
+import { ethers } from 'ethers';
+import { nftCollection } from "@/constants/contracts";
 
 declare global {
   interface Window { ethereum: any }
 }
 
-let provider: ethers.providers.Web3Provider;
+//let provider: ethers.providers.Web3Provider;
+
+const inter = Inter({ subsets: ['latin'] })
+
+
 
 export default function Home() {
+
+  const {address, connectWallet, provider} = useWeb3Store();
+  const [nftCollectionContract, setnftCollectionContract] = useState<ethers.Contract>();
+
+  useEffect(() => {
+    if(typeof window === undefined || !provider) return;
+    
+    const contract = new ethers.Contract(
+      nftCollection.address,
+      nftCollection.abi,
+      provider?.getSigner()
+    )
+
+    setnftCollectionContract(contract);
+    
+  }, [provider])
+
   return (
     <>
       <Head>
@@ -22,7 +45,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <Navbar />
+        <Navbar address={address} connectWallet={connectWallet}/>
+        <Error/>
         <Mint />
       </main>
     </>
